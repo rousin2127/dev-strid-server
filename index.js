@@ -1,5 +1,5 @@
 const express = require('express')
-const cors= require('cors');
+const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
 const port = process.env.PORT || 3000
@@ -35,34 +35,51 @@ async function run() {
 
     const db = client.db('devStride');
     const coursesCollection = db.collection('courses');
+    const usersCollection = db.collection('users');
 
-    app.get('/courses', async(req, res)=>{
+
+    app.post('/users', async (req, res) => {
+      const newUser = req.body
+
+      const email = req.body.email;
+      const query = { email: email };
+      const existingUser = await usersCollection.findOne(query);
+      if (existingUser) {
+        res.send({message:'user already exits . do not need insert again '})
+      } else {
+        const result = await usersCollection.insertOne(newUser);
+        res.send(result);
+      }
+
+    })
+
+    app.get('/courses', async (req, res) => {
       const cursor = coursesCollection.find();
       const result = await cursor.toArray();
       res.send(result)
     })
 
-    app.get('/courses/id:', async(req, res)=>{
-      const id =req.params.id;
-      const query = { _id: new ObjectId(id)};
-      const result =await coursesCollection.findOne(query);
-      res.send(result);
-    })
-
-
-    app.post('/courses', async(req,res) =>{
-      const newCourses=req.body;
-      const result= await coursesCollection.insertOne(newCourses);
-      res.send(result);
-
-    })
-
-
-    app.patch('/courses/:id', async(req, res) =>{
+    app.get('/courses/:id', async (req, res) => {
       const id = req.params.id;
-      const updateCourse= req.body;
-      const query= { _id: new ObjectId(id)};
-      const update={
+      const query = { _id: new ObjectId(id) };
+      const result = await coursesCollection.findOne(query);
+      res.send(result);
+    })
+
+
+    app.post('/courses', async (req, res) => {
+      const newCourses = req.body;
+      const result = await coursesCollection.insertOne(newCourses);
+      res.send(result);
+
+    })
+
+
+    app.patch('/courses/:id', async (req, res) => {
+      const id = req.params.id;
+      const updateCourse = req.body;
+      const query = { _id: new ObjectId(id) };
+      const update = {
         $set: {
           name: updateCourse.name,
           price: updateCourse.price
@@ -72,9 +89,9 @@ async function run() {
       res.send(result)
     })
 
-    app.delete('/courses/:id', async(req, res) =>{
-      const id= req.params.id;
-      const query = { _id: new ObjectId(id)};
+    app.delete('/courses/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
       const result = await coursesCollection.deleteOne(query);
       res.send(result);
     })
