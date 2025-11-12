@@ -36,8 +36,9 @@ async function run() {
     const db = client.db('devStride');
     const coursesCollection = db.collection('courses');
     const usersCollection = db.collection('users');
+    const enrollmentsCollection = db.collection('enrollments');
 
-
+    // this only for user
     app.post('/users', async (req, res) => {
       const newUser = req.body
 
@@ -45,11 +46,34 @@ async function run() {
       const query = { email: email };
       const existingUser = await usersCollection.findOne(query);
       if (existingUser) {
-        res.send({message:'user already exits . do not need insert again '})
+        res.send({ message: 'user already exits . do not need insert again ' })
       } else {
         const result = await usersCollection.insertOne(newUser);
         res.send(result);
       }
+
+      // POST: Enroll in a course
+      app.post('/enrollments', async (req, res) => {
+        const enrollment = req.body;
+        const query = {
+          courseId: enrollment.courseId,
+          userEmail: enrollment.userEmail,
+        };
+        const existing = await enrollmentsCollection.findOne(query);
+        if (existing) {
+          return res.send({ message: "Already enrolled" });
+        }
+        const result = await enrollmentsCollection.insertOne(enrollment);
+        res.send(result);
+      });
+
+      // GET: Get enrolled courses by user email
+      app.get('/enrollments', async (req, res) => {
+        const email = req.query.email;
+        const query = { userEmail: email };
+        const result = await enrollmentsCollection.find(query).toArray();
+        res.send(result);
+      });
 
     })
 
@@ -57,6 +81,12 @@ async function run() {
       const cursor = coursesCollection.find();
       const result = await cursor.toArray();
       res.send(result)
+    })
+
+    app.get('/popularCourses', async (req, res) => {
+      const cursor = coursesCollection.find().sort({ rating: -1 }).limit(6);
+      const result = await cursor.toArray();
+      res.send(result);
     })
 
     app.get('/courses/:id', async (req, res) => {
