@@ -1,6 +1,6 @@
 const express = require('express')
 const cors= require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
 const port = process.env.PORT || 3000
 
@@ -25,24 +25,68 @@ const client = new MongoClient(uri, {
 
 
 app.get('/', (req, res) => {
-  res.send('DevStrid server is Running')
+  res.send('DevStride server is Running')
 })
 
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
-    // Send a ping to confirm a successful connection
+
+    const db = client.db('devStride');
+    const coursesCollection = db.collection('courses');
+
+    app.get('/courses', async(req, res)=>{
+      const cursor = coursesCollection.find();
+      const result = await cursor.toArray();
+      res.send(result)
+    })
+
+    app.get('/courses/id:', async(req, res)=>{
+      const id =req.params.id;
+      const query = { _id: new ObjectId(id)};
+      const result =await coursesCollection.findOne(query);
+      res.send(result);
+    })
+
+
+    app.post('/courses', async(req,res) =>{
+      const newCourses=req.body;
+      const result= await coursesCollection.insertOne(newCourses);
+      res.send(result);
+
+    })
+
+
+    app.patch('/courses/:id', async(req, res) =>{
+      const id = req.params.id;
+      const updateCourse= req.body;
+      const query= { _id: new ObjectId(id)};
+      const update={
+        $set: {
+          name: updateCourse.name,
+          price: updateCourse.price
+        }
+      }
+      const result = await coursesCollection.updateOne(query, update);
+      res.send(result)
+    })
+
+    app.delete('/courses/:id', async(req, res) =>{
+      const id= req.params.id;
+      const query = { _id: new ObjectId(id)};
+      const result = await coursesCollection.deleteOne(query);
+      res.send(result);
+    })
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
-    // Ensures that the client will close when you finish/error
     //await client.close();
   }
 }
 run().catch(console.dir);
 
 app.listen(port, () => {
-  console.log(`DevStrid server is Running on port ${port}`)
+  console.log(`DevStride server is Running on port ${port}`)
 })
