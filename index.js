@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 3000;
@@ -9,7 +10,9 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB connection
-const uri = "mongodb+srv://devStridUser:rHtfAverbFyZe4st@cluster0.ijc2zmy.mongodb.net/?appName=Cluster0";
+// const uri = "mongodb+srv://devStridUser:rHtfAverbFyZe4st@cluster0.ijc2zmy.mongodb.net/?appName=Cluster0";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ijc2zmy.mongodb.net/?appName=Cluster0`;
+
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -93,7 +96,7 @@ async function run() {
       res.send(result);
     });
 
-    // ✅ ENROLLMENTS
+    
     // Enroll in a course
     app.post('/enrollments', async (req, res) => {
       const enrollment = req.body;
@@ -115,7 +118,7 @@ async function run() {
     });
 
     await client.db("admin").command({ ping: 1 });
-    console.log("✅ Connected to MongoDB successfully!");
+    console.log("Connected to MongoDB successfully!");
   } finally {
     // keep connection open
   }
@@ -124,5 +127,5 @@ async function run() {
 run().catch(console.dir);
 
 app.listen(port, () => {
-  console.log(`🚀 DevStride server is running on port ${port}`);
+  console.log(`DevStride server is running on port ${port}`);
 });
