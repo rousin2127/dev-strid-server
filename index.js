@@ -7,6 +7,15 @@ const port = process.env.PORT || 3000;
 
 // middleware
 app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173", 
+      "https://dev-stride-client.vercel.app", 
+    ],
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 // MongoDB connection
@@ -28,7 +37,7 @@ app.get('/', (req, res) => {
 
 async function run() {
   try {
-    await client.connect();
+   // await client.connect();
 
     const db = client.db('devStride');
     const coursesCollection = db.collection('courses');
@@ -117,7 +126,7 @@ async function run() {
       res.send(result);
     });
 
-    await client.db("admin").command({ ping: 1 });
+    //await client.db("admin").command({ ping: 1 });
     console.log("Connected to MongoDB successfully!");
   } finally {
     // keep connection open
